@@ -2,6 +2,8 @@
 
 #include"global.h"
 #include"grid3D.h"
+#include<stdio.h>
+#include<stdlib.h>
 
 #ifdef PARALLEL_OMP
 #include"parallel_omp.h"
