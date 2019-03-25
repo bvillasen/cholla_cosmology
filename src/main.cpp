@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
   // Evolve the grid, one timestep at a time
   chprintf("Starting calculations.\n");
   while (G.H.t < P.tout)
-  //while (G.H.n_step < 1)
+  while (G.H.n_step < 10)
   {
     chprintf("n_step: %d \n", G.H.n_step + 1 );
     // get the start time
