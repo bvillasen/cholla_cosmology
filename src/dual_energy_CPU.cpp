@@ -15,7 +15,9 @@
 void Grid3D::Sync_Energies_3D_CPU(){
   #ifndef PARALLEL_OMP
   Sync_Energies_3D_CPU_function( 0, H.nz_real );
-    Apply_Temperature_Floor_CPU_function( 0, H.nz_real );
+  #ifdef TEMPERATURE_FLOOR
+  Apply_Temperature_Floor_CPU_function( 0, H.nz_real );
+  #endif
   #else
   #pragma omp parallel num_threads( N_OMP_THREADS )
   {
