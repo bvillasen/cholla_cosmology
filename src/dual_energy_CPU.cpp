@@ -4,6 +4,7 @@
 #include"grid3D.h"
 #include<stdio.h>
 #include<stdlib.h>
+#include"math.h"
 
 #ifdef PARALLEL_OMP
 #include"parallel_omp.h"
