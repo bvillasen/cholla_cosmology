@@ -5,6 +5,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include"math.h"
+#include <iostream>
 
 #ifdef PARALLEL_OMP
 #include"parallel_omp.h"
