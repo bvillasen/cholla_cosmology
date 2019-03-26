@@ -142,7 +142,7 @@ NVCCFLAGS = $(FLAGS) -fmad=false -arch=sm_70
 		$(CXX) $(CXXFLAGS)  $(INCL) -c $< -o $@
 
 %.o:	%.cu
-		$(NVCC) $(NVCCFLAGS) --device-c $(NVINCL)  -c $< -o $@
+		$(NVCC) $(NVCCFLAGS) $(NVINCL)  -c $< -o $@
 
 $(EXEC): $(OBJS) src/gpuCode.o
 	 	 $(CXX) $(OBJS) src/gpuCode.o $(LIBS) -o $(EXEC)
