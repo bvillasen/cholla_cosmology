@@ -117,6 +117,10 @@ void Grid3D::Change_GAS_Frame_System( bool forward ){
         C.scalar[5*H.n_cells + id] *= dens_factor;
         C.scalar[6*H.n_cells + id] *= dens_factor;
         #endif
+        
+        #ifdef EXTRA_SCALAR
+        C.extra_scalar[id] = C.extra_scalar[id] * dens_factor ;  
+        #endif
       }
     }
   }

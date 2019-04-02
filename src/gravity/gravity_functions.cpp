@@ -51,6 +51,11 @@ void Grid3D::set_dt_Gravity(){
   }
   #endif
   
+  if ( da_min < da_particles/25 ){
+    da_min = da_particles/25;
+    chprintf( " Seting min delta_a: %f \n", da_min);
+  } 
+  
   if ( (Cosmo.current_a + da_min) >  Cosmo.next_output ){
     da_min = Cosmo.next_output - Cosmo.current_a;
     H.Output_Now = true;
