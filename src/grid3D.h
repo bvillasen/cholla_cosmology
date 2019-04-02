@@ -337,6 +337,10 @@ class Grid3D
       Real *momentum_z_0;
       #endif
       #endif//GRAVITY
+      
+      #ifdef EXTRA_SCALAR
+      Real *extra_scalar;
+      #endif
 
     } C;
 

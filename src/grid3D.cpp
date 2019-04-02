@@ -275,6 +275,10 @@ void Grid3D::AllocateMemory(void)
   #endif//DE
   #endif//GRAVITY_COUPLE_GPU
   #endif//GRAVITY
+  
+  #ifdef EXTRA_SCALAR
+  C.extra_scalar = &(C.scalar[7*H.n_cells]);
+  #endif
 
   // initialize array
   for (int i=0; i<H.n_fields*H.n_cells; i++)
@@ -652,6 +656,10 @@ Real Grid3D::Update_Grid(void)
   C.momentum_z_0 = &g0[3*H.n_cells];
   #endif//GRAVITY_COUPLE_CPU
   #endif//GRAVITY
+  
+  #ifdef EXTRA_SCALAR
+  C.extra_scalar = &(C.scalar[7*H.n_cells]);
+  #endif
 
   // reset the grid flag to swap buffers
   gflag = (gflag+1)%2;

@@ -46,11 +46,16 @@ typedef double Real;
 #define SP_ENERGY_UNIT (VELOCITY_UNIT*VELOCITY_UNIT)
 
 #ifdef DE
-#define DE_LIMIT 0.001
+#define DE_LIMIT 10.0
 #endif
 
 #ifdef COOLING_GRACKLE
+#ifndef EXTRA_SCALAR
 #define NSCALARS 7
+#else
+// Add extra scalar field
+#define NSCALARS 8 
+#endif//EXTRA_SCALAR
 #else
 #ifdef SCALAR
 // Set Number of scalar fields when not using grackle
