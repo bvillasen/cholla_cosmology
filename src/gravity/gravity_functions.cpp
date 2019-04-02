@@ -165,8 +165,7 @@ void Grid3D::Initialize_Gravity( struct parameters *P ){
   // Needed to initialize cuda after gravity in order to work on Summit
   #ifdef CUDA
   chprintf( "Initializing CUDA...\n");
-  // if(initialize_cuda_mpi(procID_node,nproc_node))
-  if(initialize_cuda_mpi(0,nproc_node))
+  if(initialize_cuda_mpi(procID_node,nproc_node))
   {
     chprintf("Error initializing cuda with mpi.\n");
     chexit(-10);
