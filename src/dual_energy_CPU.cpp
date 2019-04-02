@@ -101,22 +101,23 @@ void Grid3D::Sync_Energies_3D_CPU_function( int g_start, int g_end ){
         ge_total = E - Ek;
         ge_advected = C.GasEnergy[id];
 
-        // //Dont Change Internal energies based on first condition, 
-        // //This condition is used only to compute pressure and Intenal energy for cooling step
-        // #ifdef LIMIT_DE_EKINETIC
-        // if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta && Ek/H.Ekin_avrg > 0.4 ){
-        // #else
-        // if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta ) {
-        // #endif          
-        //   C.GasEnergy[id] = ge_total;
-        //   ge_advected = ge_total;
-        // }
+        //Dont Change Internal energies based on first condition, 
+        //This condition is used only to compute pressure and Intenal energy for cooling step
+        #ifdef LIMIT_DE_EKINETIC
+        if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta && Ek/H.Ekin_avrg > 0.4 ){
+        #else
+        if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta ) {
+        #endif          
+          C.GasEnergy[id] = ge_total;
+          ge_advected = ge_total;
+        }
+        C.Energy[id] += ge_advected - ge_total;
         // 
         // //Syncronize advected internal energy with total internal energy when using total internal energy for dynamical purposes 
         // // if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta ) C.GasEnergy[id] = ge_total;   
         // 
-        // //Syncronize advected internal energy with total internal energy when using total internal energy based on local maxEnergy condition
-        // //find the max nearby total energy
+        //Syncronize advected internal energy with total internal energy when using total internal energy based on local maxEnergy condition
+        //find the max nearby total energy
         // Emax = E;
         // Emax = std::max(C.Energy[imo], E);
         // Emax = std::max(Emax, C.Energy[ipo]);
