@@ -10,12 +10,15 @@
 #include"../parallel_omp.h"
 #endif
 
+#ifdef MPI_CHOLLA
+#include"../mpi_routines.h"
+#endif
 
 
 
 
 void Grid3D::Initialize_Fields_Grackle(){
-  
+
   int nx_g, ny_g, nz_g, nx, ny, nz, nGHST;
   nx_g = H.nx;
   ny_g = H.ny;
@@ -24,7 +27,7 @@ void Grid3D::Initialize_Fields_Grackle(){
   ny = H.ny_real;
   nz = H.nz_real;
   nGHST = H.n_ghost;
-  
+
   Real d, vx, vy, vz, E, Ekin, GE, U;
   bool flag_DE;
   int i, j, k, i_g, j_g, k_g, id;
@@ -59,8 +62,8 @@ void Grid3D::Initialize_Fields_Grackle(){
   temp_avrg /= nz*ny*nx;
   chprintf("Average Temperature = %le K.\n", temp_avrg);
   #endif
-  
-  
+
+
 }
 
 
@@ -76,7 +79,7 @@ void Grid3D::Copy_Fields_To_Grackle(){
     omp_id = omp_get_thread_num();
     n_omp_procs = omp_get_num_threads();
     Get_OMP_Grid_Indxs( H.nz_real, n_omp_procs, omp_id, &g_start, &g_end  );
-    
+
     Copy_Fields_To_Grackle_function( g_start, g_end );
     #endif
   }
@@ -94,15 +97,15 @@ void Grid3D::Update_Internal_Energy(){
     omp_id = omp_get_thread_num();
     n_omp_procs = omp_get_num_threads();
     Get_OMP_Grid_Indxs( H.nz_real, n_omp_procs, omp_id, &g_start, &g_end  );
-    
+
     Update_Internal_Energy_function( g_start, g_end );
     #endif
   }
-  
+
 }
 
 void Grid3D::Copy_Fields_To_Grackle_function( int g_start, int g_end ){
-  
+
   int nx_g, ny_g, nz_g, nx, ny, nz, nGHST;
   nx_g = H.nx;
   ny_g = H.ny;
@@ -111,14 +114,14 @@ void Grid3D::Copy_Fields_To_Grackle_function( int g_start, int g_end ){
   ny = H.ny_real;
   nz = H.nz_real;
   nGHST = H.n_ghost;
-  
+
   Real d, vx, vy, vz, E, Ekin, GE, U;
   int flag_DE;
   int k, j, i, id;
   for (k=g_start; k<g_end; k++) {
     for (j=0; j<ny; j++) {
       for (i=0; i<nx; i++) {
-        id = (i+nGHST) + (j+nGHST)*nx_g + (k+nGHST)*nx_g*ny_g;    
+        id = (i+nGHST) + (j+nGHST)*nx_g + (k+nGHST)*nx_g*ny_g;
         d = C.density[id];
         vx = C.momentum_x[id] / d;
         vy = C.momentum_y[id] / d;
@@ -129,8 +132,8 @@ void Grid3D::Copy_Fields_To_Grackle_function( int g_start, int g_end ){
         // PRESSURE_DE
         flag_DE = Select_Internal_Energy_From_DE( E, E - Ekin, GE );
         Cool.flags_DE[id] = flag_DE;
-        
-        if ( flag_DE ) U = GE;  
+
+        if ( flag_DE ) U = GE;
         else U = E - Ekin;
         Cool.fields.internal_energy[id] = U / d * Cool.energy_conv / Cosmo.current_a / Cosmo.current_a ;
         // Cool.fields.internal_energy[id] = C.GasEnergy[id]  / C.density[id] * Cool.energy_conv / Cosmo.current_a / Cosmo.current_a ;
@@ -138,10 +141,10 @@ void Grid3D::Copy_Fields_To_Grackle_function( int g_start, int g_end ){
     }
   }
 }
-  
+
 void Grid3D::Update_Internal_Energy_function( int g_start, int g_end ){
-  
-  
+
+
   int nx_g, ny_g, nz_g, nx, ny, nz, nGHST;
   nx_g = H.nx;
   ny_g = H.ny;
@@ -166,18 +169,18 @@ void Grid3D::Update_Internal_Energy_function( int g_start, int g_end ){
         E = C.Energy[id];
         GE = C.GasEnergy[id];
         Ekin = 0.5 * dens * ( vx*vx + vy*vy + vz*vz );
-        
+
         flag_DE = Cool.flags_DE[id];
         // PRESSURE_DE
         if ( flag_DE == 0 ) U_0 = E - Ekin;
         else if ( flag_DE == 1 ) U_0 = GE;
         else std::cout << " ### Frag_DE ERROR: Flag_DE: " << flag_DE << std::endl;
-        
+
         U_1 = Cool.fields.internal_energy[id] * dens / Cool.energy_conv  * Cosmo.current_a * Cosmo.current_a;
         delta_U = U_1 - U_0;
         C.GasEnergy[id] += delta_U ;
         C.Energy[id] += delta_U ;
-        
+
         // ge_0 = C.GasEnergy[id];
         // ge_1 = Cool.fields.internal_energy[id] * dens / Cool.energy_conv  * Cosmo.current_a * Cosmo.current_a;
         // delta_ge = ge_1 - ge_0;
@@ -190,39 +193,126 @@ void Grid3D::Update_Internal_Energy_function( int g_start, int g_end ){
 }
 
 void Grid3D::Do_Cooling_Step_Grackle(){
-  
+
   Real kpc_cgs = KPC_CGS;
   // Upfate the units conversion
   Cool.units.a_value = Cosmo.current_a / Cool.units.a_units;
   Cool.units.density_units = Cool.dens_to_CGS  / Cosmo.current_a / Cosmo.current_a / Cosmo.current_a ;
   Cool.units.length_units = kpc_cgs / Cosmo.cosmo_h * Cosmo.current_a;
 
-  
+  // Set_Reionization_Temperature();
+
   Copy_Fields_To_Grackle();
-  
-    
+
+
   Real dt_cool = Cosmo.dt_secs;
   chprintf( " dt_cool: %e s\n", dt_cool );
   if (solve_chemistry(&Cool.units, &Cool.fields, dt_cool / Cool.units.time_units ) == 0) {
     chprintf( "GRACKLE: Error in solve_chemistry.\n");
     return ;
   }
-  
+
+
+
   #ifdef OUTPUT_TEMPERATURE
   if (calculate_temperature(&Cool.units, &Cool.fields,  Cool.temperature) == 0) {
     chprintf( "GRACKLE: Error in calculate_temperature.\n");
     return ;
   }
   #endif
-  
-  Update_Internal_Energy(); 
-  
+
+  Update_Internal_Energy();
+
+}
+
+Real Grid3D::Get_Temperature( Real U, Real dens, Real HI_dens, Real HII_dens, Real HeI_dens, Real HeII_dens, Real HeIII_dens  ){
+
+  Real mu =  dens / ( HI_dens + 2*HII_dens + ( HeI_dens + 2*HeII_dens + 3*HeIII_dens) / 4 );
+  Real temp = (Cool.gamma - 1) * MP * mu / KB * 1e10 * U * Cosmo.v_0_gas * Cosmo.v_0_gas / Cosmo.current_a / Cosmo.current_a;
+  chprintf("%f\n", mu);
+  return temp;
+
+}
+
+Real Grid3D::Get_Average_Temperature( ){
+  Real temp_avrg, temp_sum;
+  Real dens, HI_dens, HII_dens, HeI_dens, HeII_dens, HeIII_dens, U, temp;
+  int nx_g, ny_g, nz_g, nx, ny, nz, nGHST;
+  nx_g = H.nx;
+  ny_g = H.ny;
+  nz_g = H.nz;
+  nx = H.nx_real;
+  ny = H.ny_real;
+  nz = H.nz_real;
+  nGHST = H.n_ghost;
+
+  temp_sum = 0;
+  int k, j, i, id;
+  for (k=0; k<nz; k++) {
+    for (j=0; j<ny; j++) {
+      for (i=0; i<nx; i++) {
+        id = (i+nGHST) + (j+nGHST)*nx_g + (k+nGHST)*nx_g*ny_g;
+        dens = Cool.fields.density[id];
+        HI_dens = Cool.fields.HI_density[id];
+        HII_dens = Cool.fields.HII_density[id];
+        HeI_dens = Cool.fields.HeI_density[id];
+        HeII_dens = Cool.fields.HeII_density[id];
+        HeIII_dens = Cool.fields.HeIII_density[id];
+        U = C.GasEnergy[id] / dens;
+        // temp = Get_Temperature( U, dens, HI_dens, HII_dens, HeI_dens, HeII_dens, HeIII_dens  );
+        temp_sum += U;
+      }
+    }
+  }
+
+  temp_avrg = temp_sum / ( nx * ny * nz );
+
+  #ifdef MPI_CHOLLA
+  temp_avrg = ReduceRealAvg( temp_avrg );
+  #endif
+
+  return temp_avrg;
 }
 
 
+void Grid3D::Set_Reionization_Temperature( ){
 
+  Real a_reionizaton = Cool.scale_factor_UVB_on;
+  Real current_a = Cosmo.current_a;
+  // chprintf( " Temp_average: %f\n", temp_avrg );
 
+  if ( current_a < a_reionizaton ) return;
+  Real U_avrg = Get_Average_Temperature();
 
+  Real temp_reionization = 3.5e3;
+  Real mu = 1.219283;
+  Real U_reionization = temp_reionization / (Cool.gamma - 1) / MP / mu * KB * 1e-10 / Cosmo.v_0_gas / Cosmo.v_0_gas * Cosmo.current_a * Cosmo.current_a;
+
+  Real delta_U = U_reionization - U_avrg;
+  
+  if ( delta_U < 0 ) return; 
+
+  int nx_g, ny_g, nz_g, nx, ny, nz, nGHST;
+  nx_g = H.nx;
+  ny_g = H.ny;
+  nz_g = H.nz;
+  nx = H.nx_real;
+  ny = H.ny_real;
+  nz = H.nz_real;
+  nGHST = H.n_ghost;
+  Real dens;
+  int k, j, i, id;
+  for (k=0; k<nz; k++) {
+    for (j=0; j<ny; j++) {
+      for (i=0; i<nx; i++) {
+        id = (i+nGHST) + (j+nGHST)*nx_g + (k+nGHST)*nx_g*ny_g;
+        dens = C.density[id];
+        C.GasEnergy[id] += delta_U*dens;
+        C.Energy[id] += delta_U*dens;
+      }
+    }
+  }
+}
 
 
 
