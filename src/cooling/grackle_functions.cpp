@@ -156,6 +156,8 @@ void Grid3D::Update_Internal_Energy_function( int g_start, int g_end ){
   // Real ge_0, ge_1, delta_ge;
   // Real dens;
   Real dens, vx, vy, vz, E, Ekin, GE, U_0, U_1, delta_U;
+  Real HI_dens, HII_dens, HeI_dens, HeII_dens, HeIII_dens;
+  Real temp;
   int flag_DE;
   int k, j, i, id;
   for (k=g_start; k<g_end; k++) {
@@ -174,7 +176,18 @@ void Grid3D::Update_Internal_Energy_function( int g_start, int g_end ){
         // PRESSURE_DE
         if ( flag_DE == 0 ) U_0 = E - Ekin;
         else if ( flag_DE == 1 ) U_0 = GE;
-        else std::cout << " ### Frag_DE ERROR: Flag_DE: " << flag_DE << std::endl;
+        else std::cout << " ### Flag_DE ERROR: Flag_DE: " << flag_DE << std::endl;
+        
+        // if ( (Cosmo.current_a ) > Cool.scale_factor_UVB_on + 0.02 ){
+        //   HI_dens = Cool.fields.HI_density[id];
+        //   HII_dens = Cool.fields.HII_density[id];
+        //   HeI_dens = Cool.fields.HeI_density[id];
+        //   HeII_dens = Cool.fields.HeII_density[id];
+        //   HeIII_dens = Cool.fields.HeIII_density[id];
+        // 
+        //   temp = Get_Temperature( U_0/dens,  dens, HI_dens,  HII_dens,  HeI_dens,  HeII_dens,  HeIII_dens  );
+        //   if ( temp < 300 ) continue;
+        // }
 
         U_1 = Cool.fields.internal_energy[id] * dens / Cool.energy_conv  * Cosmo.current_a * Cosmo.current_a;
         delta_U = U_1 - U_0;
@@ -229,9 +242,7 @@ Real Grid3D::Get_Temperature( Real U, Real dens, Real HI_dens, Real HII_dens, Re
 
   Real mu =  dens / ( HI_dens + 2*HII_dens + ( HeI_dens + 2*HeII_dens + 3*HeIII_dens) / 4 );
   Real temp = (Cool.gamma - 1) * MP * mu / KB * 1e10 * U * Cosmo.v_0_gas * Cosmo.v_0_gas / Cosmo.current_a / Cosmo.current_a;
-  chprintf("%f\n", mu);
   return temp;
-
 }
 
 Real Grid3D::Get_Average_Temperature( ){

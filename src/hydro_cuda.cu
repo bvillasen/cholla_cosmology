@@ -191,7 +191,7 @@ __global__ void Update_Conserved_Variables_2D(Real *dev_conserved, Real *dev_F_x
 
 
 
-__global__ void Update_Conserved_Variables_3D(Real *dev_conserved, Real *dev_F_x, Real *dev_F_y,  Real *dev_F_z,
+__global__ void Update_Conserved_Variables_3D(Real *dev_conserved,  Real *Q_Lx, Real *Q_Rx, Real *Q_Ly, Real *Q_Ry, Real *Q_Lz, Real *Q_Rz, Real *dev_F_x, Real *dev_F_y,  Real *dev_F_z,
                                               int nx, int ny, int nz, int x_off, int y_off, int z_off, int n_ghost, 
                                               Real dx, Real dy, Real dz, Real xbound, Real ybound, Real zbound, Real dt,
                                               Real gamma, int n_fields, Real density_floor )
@@ -204,6 +204,7 @@ __global__ void Update_Conserved_Variables_3D(Real *dev_conserved, Real *dev_F_x
   #ifdef DE
   Real vx_imo, vx_ipo, vy_jmo, vy_jpo, vz_kmo, vz_kpo, P, E, E_kin, GE;
   int ipo, jpo, kpo;
+  Real vx_L, vx_R, vy_L, vy_R, vz_L, vz_R;
   #endif
 
   #ifdef STATIC_GRAV
@@ -280,6 +281,13 @@ __global__ void Update_Conserved_Variables_3D(Real *dev_conserved, Real *dev_F_x
     vy_jpo = dev_conserved[2*n_cells + jpo] / dev_conserved[jpo]; 
     vz_kmo = dev_conserved[3*n_cells + kmo] / dev_conserved[kmo]; 
     vz_kpo = dev_conserved[3*n_cells + kpo] / dev_conserved[kpo]; 
+    
+    vx_R = Q_Lx[1*n_cells + id]  / Q_Lx[id]; 
+    vx_L = Q_Rx[1*n_cells + imo] / Q_Rx[imo]; 
+    vy_R = Q_Ly[2*n_cells + id]  / Q_Ly[id]; 
+    vy_L = Q_Ry[2*n_cells + jmo] / Q_Ry[jmo];
+    vz_R = Q_Lz[3*n_cells + id]  / Q_Lz[id]; 
+    vz_L = Q_Rz[3*n_cells + kmo] / Q_Rz[kmo]; 
     #endif
 
     // update the conserved variable array
@@ -309,7 +317,9 @@ __global__ void Update_Conserved_Variables_3D(Real *dev_conserved, Real *dev_F_x
     dev_conserved[(n_fields-1)*n_cells + id] += dtodx * (dev_F_x[(n_fields-1)*n_cells + imo] - dev_F_x[(n_fields-1)*n_cells + id])
                                   +  dtody * (dev_F_y[(n_fields-1)*n_cells + jmo] - dev_F_y[(n_fields-1)*n_cells + id])
                                   +  dtodz * (dev_F_z[(n_fields-1)*n_cells + kmo] - dev_F_z[(n_fields-1)*n_cells + id])
-                                  +  0.5*P*(dtodx*(vx_imo-vx_ipo) + dtody*(vy_jmo-vy_jpo) + dtodz*(vz_kmo-vz_kpo));
+                                  -  P * ( dtodx * ( vx_R - vx_L ) + dtody * ( vy_R - vy_L ) + dtodz * ( vz_R - vz_L ) );
+                                  // +  0.5*P*(dtodx*(vx_imo-vx_ipo) + dtody*(vy_jmo-vy_jpo) + dtodz*(vz_kmo-vz_kpo));
+                                  
     #endif
     
     #ifdef EXTRA_SCALAR

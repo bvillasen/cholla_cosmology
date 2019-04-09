@@ -103,38 +103,38 @@ void Grid3D::Sync_Energies_3D_CPU_function( int g_start, int g_end ){
 
         //Dont Change Internal energies based on first condition, 
         //This condition is used only to compute pressure and Intenal energy for cooling step
-        // #ifdef LIMIT_DE_EKINETIC
-        // if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta && Ek/H.Ekin_avrg > 0.4 ){
-        // #else
-        // if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta ) {
-        // #endif          
-        //   C.GasEnergy[id] = ge_total;
-        //   ge_advected = ge_total;
-        // }
+        #ifdef LIMIT_DE_EKINETIC
+        if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta && Ek/H.Ekin_avrg > 0.4 ){
+        #else
+        if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta ) {
+        #endif          
+          C.GasEnergy[id] = ge_total;
+          ge_advected = ge_total;
+        }
         // C.Energy[id] += ge_advected - ge_total;
         // 
         // //Syncronize advected internal energy with total internal energy when using total internal energy for dynamical purposes 
         // // if (ge_total > 0.0 && E > 0.0 && ge_total/E > eta ) C.GasEnergy[id] = ge_total;   
         // 
-        //Syncronize advected internal energy with total internal energy when using total internal energy based on local maxEnergy condition
-        //find the max nearby total energy
-        // Emax = E;
-        // Emax = std::max(C.Energy[imo], E);
-        // Emax = std::max(Emax, C.Energy[ipo]);
-        // Emax = std::max(Emax, C.Energy[jmo]);
-        // Emax = std::max(Emax, C.Energy[jpo]);
-        // Emax = std::max(Emax, C.Energy[kmo]);
-        // Emax = std::max(Emax, C.Energy[kpo]);
-        // if (ge_total/Emax > 0.1 && ge_total > 0.0 && Emax > 0.0) {
-        //   C.GasEnergy[id] = ge_total;
-        // }
+        // Syncronize advected internal energy with total internal energy when using total internal energy based on local maxEnergy condition
+        // find the max nearby total energy
+        Emax = E;
+        Emax = std::max(C.Energy[imo], E);
+        Emax = std::max(Emax, C.Energy[ipo]);
+        Emax = std::max(Emax, C.Energy[jmo]);
+        Emax = std::max(Emax, C.Energy[jpo]);
+        Emax = std::max(Emax, C.Energy[kmo]);
+        Emax = std::max(Emax, C.Energy[kpo]);
+        if (ge_total/Emax > 0.1 && ge_total > 0.0 && Emax > 0.0) {
+          C.GasEnergy[id] = ge_total;
+        }
         
-        //Dont Change total energy  
+        // Dont Change total energy  
         // sync the total energy with the internal energy
-        // else {
-        //   if (ge_advected > 0.0) C.Energy[id] += ge_advected - ge_total;
-        //   else C.GasEnergy[id] = ge_total;
-        // }
+        else {
+          if (ge_advected > 0.0) C.Energy[id] += ge_advected - ge_total;
+          else C.GasEnergy[id] = ge_total;
+        }
       }
     }
   }
@@ -144,7 +144,7 @@ void Grid3D::Sync_Energies_3D_CPU_function( int g_start, int g_end ){
 void Grid3D::Apply_Temperature_Floor_CPU_function( int g_start, int g_end ){
   Real temp_floor = H.temperature_floor;
   
-  if (Cosmo.current_a > Cool.scale_factor_UVB_on ) temp_floor =  1e3;
+  if (Cosmo.current_a > Cool.scale_factor_UVB_on ) temp_floor =  1;
   Real U_floor = temp_floor / (gama - 1) / MP * KB * 1e-10;
 
   #ifdef COSMOLOGY
