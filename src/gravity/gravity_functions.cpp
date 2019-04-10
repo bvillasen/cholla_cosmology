@@ -352,7 +352,14 @@ void Grid3D::Extrapolate_Grav_Potential_Function( int g_start, int g_end ){
           pot_extrp = pot_now;
         } else {
           pot_prev = Grav.F.potential_1_h[id_pot];
+          #ifdef GRAVITY_COUPLE_GPU
           pot_extrp = pot_now  + 0.5 * Grav.dt_now * ( pot_now - pot_prev  ) / Grav.dt_prev;
+          #endif
+          #ifdef GRAVITY_COUPLE_CPU
+          // pot_extrp =  pot_now ;
+          // pot_extrp = pot_now  + 0.5 * Grav.dt_now * ( pot_now - pot_prev  ) / Grav.dt_prev;
+          pot_extrp = 0.5 * ( pot_now + pot_prev  );
+          #endif
         }
         
         #ifdef COSMOLOGY
