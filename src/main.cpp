@@ -174,12 +174,34 @@ int main(int argc, char *argv[])
     #endif
     
     // Advance the grid by one timestep
-    dti = G.Update_Hydro_Grid();
+    dti = G.Update_Hydro_Grid( 1 );
+    
+    
+        
+    #ifdef GRAVITY
+    G.Cosmo.current_a += G.Cosmo.delta_a;
+    G.Compute_Gravitational_Potential( &P);
+    G.Cosmo.current_a -= G.Cosmo.delta_a;
+    // If the Gravity cuopling is on the CPU, the potential is not in the Conserved arrays,
+    // and its boundaries need to be transfered separately
+    #ifdef GRAVITY_COUPLE_CPU
+    #ifdef CPU_TIME
+    G.Timer.Start_Timer();
+    #endif
+    G.Grav.TRANSFER_POTENTIAL_BOUNDARIES = true;
+    G.Set_Boundary_Conditions(P);
+    G.Grav.TRANSFER_POTENTIAL_BOUNDARIES = false;
+    #ifdef CPU_TIME
+    G.Timer.End_and_Record_Time( 9 );
+    #endif
+    #endif
+    #endif
+    
+    G.Update_Hydro_Grid( 2 );
     
     // update the simulation time ( t += dt )
     G.Update_Time();
     
-        
     #ifdef GRAVITY
     //Compute Gravitational potential for next step
     G.Compute_Gravitational_Potential( &P);
