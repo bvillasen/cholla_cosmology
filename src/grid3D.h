@@ -401,7 +401,7 @@ class Grid3D
     
     /*! \fn void Update_Hydro_Grid(void)
      *  \brief Do all steps to update the hydro. */
-    Real Update_Hydro_Grid(void);
+    Real Update_Hydro_Grid( int step );
     
     void Update_Time();
     

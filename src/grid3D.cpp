@@ -662,7 +662,7 @@ Real Grid3D::Update_Grid(void)
 
 /*! \fn void Update_Hydro_Grid(void)
  *  \brief Do all steps to update the hydro. */
-Real Grid3D::Update_Hydro_Grid( ){
+Real Grid3D::Update_Hydro_Grid( int step ){
   
   #ifdef ONLY_PARTICLES
   // Dond integrate the Hydro when only solving for particles
@@ -675,39 +675,45 @@ Real Grid3D::Update_Hydro_Grid( ){
   Timer.Start_Timer();
   #endif //CPU_TIME
   
-  #ifdef GRAVITY
-  // Extrapolate gravitational potential for hydro step
-  Extrapolate_Grav_Potential();
-  #endif
+  if( step == 1 ){
+    #if defined( GRAVITY ) && defined(GRAVITY_COUPLE_GPU) 
+    // Extrapolate gravitational potential for hydro step
+    Extrapolate_Grav_Potential();
+    #endif
+    
+    dti = Update_Grid();
+  }
   
-  dti = Update_Grid();
-  
-  #if defined(GRAVITY) && defined(GRAVITY_COUPLE_CPU)
-  Get_Gravitational_Field();
-  Add_Gavity_To_Hydro();
-  #ifdef DE
-  #ifdef LIMIT_DE_EKINETIC
-  Get_Average_Kinetic_Energy();
-  #endif //LIMIT_DE_EKINETIC
-  Sync_Energies_3D_CPU();
-  #endif//DE
-  #endif//GRAVITY
-  
-  #ifdef CPU_TIME
-  Timer.End_and_Record_Time( 1 );
-  #endif //CPU_TIME
-  
-  #ifdef COOLING_GRACKLE
-  #ifdef CPU_TIME
-  Timer.Start_Timer();
-  #endif
-  Do_Cooling_Step_Grackle( );
-  // Apply_Temperature_Floor_CPU_function(  0, Grav.nz_local );
-  #ifdef CPU_TIME
-  Timer.End_and_Record_Time(10);
-  #endif
-  #endif//COOLING_GRACKLE
-  
+  if( step == 2 ){
+    
+    #if defined(GRAVITY) && defined(GRAVITY_COUPLE_CPU)
+    Extrapolate_Grav_Potential();
+    Get_Gravitational_Field();
+    Add_Gavity_To_Hydro();
+    #ifdef DE
+    #ifdef LIMIT_DE_EKINETIC
+    Get_Average_Kinetic_Energy();
+    #endif //LIMIT_DE_EKINETIC
+    Sync_Energies_3D_CPU();
+    #endif//DE
+    #endif//GRAVITY
+    
+    #ifdef CPU_TIME
+    Timer.End_and_Record_Time( 1 );
+    #endif //CPU_TIME
+    
+    #ifdef COOLING_GRACKLE
+    #ifdef CPU_TIME
+    Timer.Start_Timer();
+    #endif
+    Do_Cooling_Step_Grackle( );
+    // Apply_Temperature_Floor_CPU_function(  0, Grav.nz_local );
+    #ifdef CPU_TIME
+    Timer.End_and_Record_Time(10);
+    #endif
+    #endif//COOLING_GRACKLE
+    
+  }
   
   return dti;
 }
