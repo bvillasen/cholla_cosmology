@@ -32,7 +32,7 @@ void Cosmology::Initialize( struct parameters *P, Grav3D &Grav, Particles_3D &Pa
   Grav.Gconst = cosmo_G;
 
   max_delta_a = 0.001;
-  delta_a = max_delta_a;
+  delta_a = 0;
 
   // Initialize Time and set the time conversion
   t_secs = 0;
