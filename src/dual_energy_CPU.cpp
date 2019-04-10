@@ -146,7 +146,7 @@ void Grid3D::Apply_Temperature_Floor_CPU_function( int g_start, int g_end ){
   Real temp_floor = H.temperature_floor;
   
   #ifdef COOLING_GRACKLE
-  if ( Cosmo.current_a > Cool.scale_factor_UVB_on ) temp_floor = 3e2;
+  if ( Cosmo.current_a > Cool.scale_factor_UVB_on ) temp_floor = H.temperature_floor;
   #endif 
   
   Real U_floor = temp_floor / (gama - 1) / MP * KB * 1e-10;
