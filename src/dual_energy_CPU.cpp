@@ -161,6 +161,8 @@ void Grid3D::Apply_Temperature_Floor_CPU_function( int g_start, int g_end ){
   nx = H.nx_real;
   ny = H.ny_real;
   nz = H.nz_real;
+  
+  bool cell_on_floor = false;
 
   int nGHST = nGHST_grid ;
   Real d, vx, vy, vz, Ekin, E, U, GE;
@@ -183,7 +185,12 @@ void Grid3D::Apply_Temperature_Floor_CPU_function( int g_start, int g_end ){
         #ifdef DE
         GE = C.GasEnergy[id];
         U = GE / d;
-        if ( U < U_floor ) C.GasEnergy[id] = d*U_floor;
+        if ( U < U_floor ){
+           C.GasEnergy[id] = d*U_floor;
+          if ( Cosmo.current_a > Cool.scale_factor_UVB_on + 0.02){
+            std::cout << "######Cell hit the floor. current_a: " << Cosmo.current_a << std::endl;
+          } 
+         }
         #endif
       }
     }
