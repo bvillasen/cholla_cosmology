@@ -54,7 +54,7 @@ typedef double Real;
 #define NSCALARS 7
 #else
 // Add extra scalar field
-#define NSCALARS 8 
+#define NSCALARS 9
 #endif//EXTRA_SCALAR
 #else
 #ifdef SCALAR
