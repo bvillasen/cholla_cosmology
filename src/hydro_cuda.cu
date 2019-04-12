@@ -205,6 +205,8 @@ __global__ void Update_Conserved_Variables_3D(Real *dev_conserved,  Real *Q_Lx, 
   Real vx_imo, vx_ipo, vy_jmo, vy_jpo, vz_kmo, vz_kpo, P, E, E_kin, GE;
   int ipo, jpo, kpo;
   Real vx_L, vx_R, vy_L, vy_R, vz_L, vz_R;
+  Real GE_before, GE_after, max_fracc_change;
+  max_fracc_change = 0.25;
   #endif
 
   #ifdef STATIC_GRAV
@@ -314,17 +316,28 @@ __global__ void Update_Conserved_Variables_3D(Real *dev_conserved,  Real *Q_Lx, 
     }                              
     #endif
     #ifdef DE
+    GE_before = dev_conserved[(n_fields-1)*n_cells + id];
     dev_conserved[(n_fields-1)*n_cells + id] += dtodx * (dev_F_x[(n_fields-1)*n_cells + imo] - dev_F_x[(n_fields-1)*n_cells + id])
                                   +  dtody * (dev_F_y[(n_fields-1)*n_cells + jmo] - dev_F_y[(n_fields-1)*n_cells + id])
                                   +  dtodz * (dev_F_z[(n_fields-1)*n_cells + kmo] - dev_F_z[(n_fields-1)*n_cells + id])
-                                  -  P * ( dtodx * ( vx_R - vx_L ) + dtody * ( vy_R - vy_L ) + dtodz * ( vz_R - vz_L ) );
-                                  // +  0.5*P*(dtodx*(vx_imo-vx_ipo) + dtody*(vy_jmo-vy_jpo) + dtodz*(vz_kmo-vz_kpo));
-                                  
+                                  +  0.5*P*(dtodx*(vx_imo-vx_ipo) + dtody*(vy_jmo-vy_jpo) + dtodz*(vz_kmo-vz_kpo));
+                                  // -  P * ( dtodx * ( vx_R - vx_L ) + dtody * ( vy_R - vy_L ) + dtodz * ( vz_R - vz_L ) );
+    GE_after = dev_conserved[(n_fields-1)*n_cells + id];
+    
+    // if ( ( fabs( GE_after - GE_before ) / GE_before ) > max_fracc_change ){
+    //   // The fractional change in adected internal energy is grater than 0.5
+    //   if ( GE_after > GE_before ) dev_conserved[(n_fields-1)*n_cells + id] = ( 1 + max_fracc_change ) * GE_before;
+    //   if ( GE_after < GE_before ) dev_conserved[(n_fields-1)*n_cells + id] = ( 1 - max_fracc_change ) * GE_before;     
+    // }                               
     #endif
     
     #ifdef EXTRA_SCALAR
-    //add pressure term to extras scalar
-    // dev_conserved[(5+7)*n_cells + id] += 0.5*P*(dtodx*(vx_imo-vx_ipo) + dtody*(vy_jmo-vy_jpo) + dtodz*(vz_kmo-vz_kpo));    
+    //set extra scalar equal to the pressure term
+    dev_conserved[(5+7)*n_cells + id] = dtodx * (dev_F_x[(n_fields-1)*n_cells + imo] - dev_F_x[(n_fields-1)*n_cells + id])
+                                  +  dtody * (dev_F_y[(n_fields-1)*n_cells + jmo] - dev_F_y[(n_fields-1)*n_cells + id])
+                                  +  dtodz * (dev_F_z[(n_fields-1)*n_cells + kmo] - dev_F_z[(n_fields-1)*n_cells + id]);   
+    dev_conserved[(5+8)*n_cells + id] = 0.5*P*(dtodx*(vx_imo-vx_ipo) + dtody*(vy_jmo-vy_jpo) + dtodz*(vz_kmo-vz_kpo));   
+    // dev_conserved[(5+7)*n_cells + id] = 15.5;   
     #endif
     
     #ifdef DENSITY_FLOOR
