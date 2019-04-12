@@ -119,7 +119,7 @@ void Grid3D::Change_GAS_Frame_System( bool forward ){
         #endif
         
         #ifdef EXTRA_SCALAR
-        C.extra_scalar[id] = C.extra_scalar[id] * dens_factor ;  
+        // C.extra_scalar[id] = C.extra_scalar[id] * dens_factor ;  
         #endif
       }
     }
