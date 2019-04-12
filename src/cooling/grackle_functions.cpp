@@ -178,16 +178,16 @@ void Grid3D::Update_Internal_Energy_function( int g_start, int g_end ){
         else if ( flag_DE == 1 ) U_0 = GE;
         else std::cout << " ### Flag_DE ERROR: Flag_DE: " << flag_DE << std::endl;
         
-        // if ( (Cosmo.current_a ) > Cool.scale_factor_UVB_on + 0.02 ){
-        //   HI_dens = Cool.fields.HI_density[id];
-        //   HII_dens = Cool.fields.HII_density[id];
-        //   HeI_dens = Cool.fields.HeI_density[id];
-        //   HeII_dens = Cool.fields.HeII_density[id];
-        //   HeIII_dens = Cool.fields.HeIII_density[id];
-        // 
-        //   temp = Get_Temperature( U_0/dens,  dens, HI_dens,  HII_dens,  HeI_dens,  HeII_dens,  HeIII_dens  );
-        //   if ( temp < 300 ) continue;
-        // }
+        if ( (Cosmo.current_a ) > Cool.scale_factor_UVB_on + 0.02 ){
+          HI_dens = Cool.fields.HI_density[id];
+          HII_dens = Cool.fields.HII_density[id];
+          HeI_dens = Cool.fields.HeI_density[id];
+          HeII_dens = Cool.fields.HeII_density[id];
+          HeIII_dens = Cool.fields.HeIII_density[id];
+        
+          temp = Get_Temperature( U_0/dens,  dens, HI_dens,  HII_dens,  HeI_dens,  HeII_dens,  HeIII_dens  );
+          if ( temp < 300 ) continue;
+        }
 
         U_1 = Cool.fields.internal_energy[id] * dens / Cool.energy_conv  * Cosmo.current_a * Cosmo.current_a;
         delta_U = U_1 - U_0;
