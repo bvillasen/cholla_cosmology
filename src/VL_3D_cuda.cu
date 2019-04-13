@@ -29,39 +29,41 @@
 __global__ void Update_Conserved_Variables_3D_half(Real *dev_conserved, Real *dev_conserved_half, Real *dev_F_x, Real *dev_F_y,  Real *dev_F_z, int nx, int ny, int nz, int n_ghost, Real dx, Real dy, Real dz, Real dt, Real gamma, int n_fields, Real density_floor);
 
 
-bool memory_allocated; // Flag becomes true after allocating the memory on the first timestep
 
-// Arrays are global so that they can be allocated only once.
-// GPU arrays
-// conserved variables
-Real *dev_conserved, *dev_conserved_half;
-// input states and associated interface fluxes (Q* and F* from Stone, 2008)
-Real *Q_Lx, *Q_Rx, *Q_Ly, *Q_Ry, *Q_Lz, *Q_Rz, *F_x, *F_y, *F_z;
-// arrays to hold the eta values for the H correction
-Real *eta_x, *eta_y, *eta_z, *etah_x, *etah_y, *etah_z;
-// array of inverse timesteps for dt calculation
-Real *dev_dti_array;
-#ifdef COOLING_GPU
-// array of timesteps for dt calculation (cooling restriction)
-Real *dev_dt_array;
-#endif  
-
-// Buffer to copy conserved variable blocks to/from
-Real *buffer;
-
-// Pointers for the location to copy from and to
-Real *tmp1;
-Real *tmp2;
-
-// Array on the CPU to hold max_dti returned from each thread block
-Real *host_dti_array;
-#ifdef COOLING_GPU
-Real *host_dt_array;
-#endif
 
 
 Real VL_Algorithm_3D_CUDA(Real *host_conserved0, Real *host_conserved1, int nx, int ny, int nz, int x_off, int y_off, int z_off, int n_ghost, Real dx, Real dy, Real dz, Real xbound, Real ybound, Real zbound, Real dt, int n_fields, Real density_floor, Real U_floor)
 {
+
+  // bool memory_allocated; // Flag becomes true after allocating the memory on the first timestep
+
+  // Arrays are global so that they can be allocated only once.
+  // GPU arrays
+  // conserved variables
+  Real *dev_conserved, *dev_conserved_half;
+  // input states and associated interface fluxes (Q* and F* from Stone, 2008)
+  Real *Q_Lx, *Q_Rx, *Q_Ly, *Q_Ry, *Q_Lz, *Q_Rz, *F_x, *F_y, *F_z;
+  // arrays to hold the eta values for the H correction
+  Real *eta_x, *eta_y, *eta_z, *etah_x, *etah_y, *etah_z;
+  // array of inverse timesteps for dt calculation
+  Real *dev_dti_array;
+  #ifdef COOLING_GPU
+  // array of timesteps for dt calculation (cooling restriction)
+  Real *dev_dt_array;
+  #endif  
+
+  // Buffer to copy conserved variable blocks to/from
+  Real *buffer;
+
+  // Pointers for the location to copy from and to
+  Real *tmp1;
+  Real *tmp2;
+
+  // Array on the CPU to hold max_dti returned from each thread block
+  Real *host_dti_array;
+  #ifdef COOLING_GPU
+  Real *host_dt_array;
+  #endif
 
   //Here, *host_conserved contains the entire
   //set of conserved variables on the grid
@@ -112,7 +114,7 @@ Real VL_Algorithm_3D_CUDA(Real *host_conserved0, Real *host_conserved1, int nx, 
   
   memory_allocated = false;
   
-  if ( !memory_allocated ){
+  // if ( !memory_allocated ){
 
     // allocate an array on the CPU to hold max_dti returned from each thread block
     host_dti_array = (Real *) malloc(ngrid*sizeof(Real));
@@ -143,15 +145,15 @@ Real VL_Algorithm_3D_CUDA(Real *host_conserved0, Real *host_conserved1, int nx, 
     CudaSafeCall( cudaMalloc((void**)&dev_dt_array, ngrid*sizeof(Real)) );
     #endif 
     
-    #ifdef SINGLE_ALLOC_GPU
-    chprintf( " VL_3D: Allocating memory \n");
-    chprintf ( "  N memory blocks gpu: %d\n", block_tot );
-    // If memory is single allocated: memory_allocated becomesa true and succesive timesteps won't allocate memory.
-    // If the memory is single not allocated: memory_allocated remains Null and memory is allocated every timestep.
-    memory_allocated = true;
-    chprintf( " VL_3D: Memory successfully allocated \n");
-    #endif 
-  }  
+    // #ifdef SINGLE_ALLOC_GPU
+    // chprintf( " VL_3D: Allocating memory \n");
+    // chprintf ( "  N memory blocks gpu: %d\n", block_tot );
+    // // If memory is single allocated: memory_allocated becomesa true and succesive timesteps won't allocate memory.
+    // // If the memory is single not allocated: memory_allocated remains Null and memory is allocated every timestep.
+    // memory_allocated = true;
+    // chprintf( " VL_3D: Memory successfully allocated \n");
+    // #endif 
+  // }  
 
   // Initialize dt values 
   Real max_dti = 0;
@@ -321,10 +323,10 @@ Real VL_Algorithm_3D_CUDA(Real *host_conserved0, Real *host_conserved1, int nx, 
   // free CPU memory
   if (block_tot > 1) free(buffer);
   
-  #ifndef SINGLE_ALLOC_GPU
+  // #ifndef SINGLE_ALLOC_GPU
   // If memory is not sigle allocated then free the memory evry timestep.
   Free_Memory_VL_3D();
-  #endif
+  // #endif
   
   // return the maximum inverse timestep
   return max_dti;
@@ -363,9 +365,9 @@ void Free_Memory_VL_3D(){
   cudaFree(dev_dt_array);
   #endif
   
-  #ifdef SINGLE_ALLOC_GPU
-  chprintf( " VL_3D: Memory freed successfully \n");
-  #endif
+  // #ifdef SINGLE_ALLOC_GPU
+  // chprintf( " VL_3D: Memory freed successfully \n");
+  // #endif
 }
 
 __global__ void Update_Conserved_Variables_3D_half(Real *dev_conserved, Real *dev_conserved_half, Real *dev_F_x, Real *dev_F_y,  Real *dev_F_z, int nx, int ny, int nz, int n_ghost, Real dx, Real dy, Real dz, Real dt, Real gamma, int n_fields, Real density_floor )
