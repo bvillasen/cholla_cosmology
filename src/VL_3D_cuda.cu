@@ -35,7 +35,7 @@ __global__ void Update_Conserved_Variables_3D_half(Real *dev_conserved, Real *de
 Real VL_Algorithm_3D_CUDA(Real *host_conserved0, Real *host_conserved1, int nx, int ny, int nz, int x_off, int y_off, int z_off, int n_ghost, Real dx, Real dy, Real dz, Real xbound, Real ybound, Real zbound, Real dt, int n_fields, Real density_floor, Real U_floor)
 {
 
-  bool memory_allocated; // Flag becomes true after allocating the memory on the first timestep
+  // bool memory_allocated; // Flag becomes true after allocating the memory on the first timestep
 
   // Arrays are global so that they can be allocated only once.
   // GPU arrays
@@ -325,17 +325,8 @@ Real VL_Algorithm_3D_CUDA(Real *host_conserved0, Real *host_conserved1, int nx, 
   
   // #ifndef SINGLE_ALLOC_GPU
   // If memory is not sigle allocated then free the memory evry timestep.
-  Free_Memory_VL_3D();
+  // Free_Memory_VL_3D();
   // #endif
-  
-  // return the maximum inverse timestep
-  return max_dti;
-
-}
-
-
-void Free_Memory_VL_3D(){
-  
   
   free(host_dti_array);  
   #ifdef COOLING_GPU
@@ -364,6 +355,43 @@ void Free_Memory_VL_3D(){
   #ifdef COOLING_GPU
   cudaFree(dev_dt_array);
   #endif
+  
+  // return the maximum inverse timestep
+  return max_dti;
+
+}
+
+
+void Free_Memory_VL_3D(){
+  // 
+  // 
+  // free(host_dti_array);  
+  // #ifdef COOLING_GPU
+  // free(host_dt_array);  
+  // #endif  
+  // 
+  // // free the GPU memory
+  // cudaFree(dev_conserved);
+  // cudaFree(dev_conserved_half);
+  // cudaFree(Q_Lx);
+  // cudaFree(Q_Rx);
+  // cudaFree(Q_Ly);
+  // cudaFree(Q_Ry);
+  // cudaFree(Q_Lz);
+  // cudaFree(Q_Rz);
+  // cudaFree(F_x);
+  // cudaFree(F_y);
+  // cudaFree(F_z);
+  // cudaFree(eta_x);
+  // cudaFree(eta_y);
+  // cudaFree(eta_z);
+  // cudaFree(etah_x);
+  // cudaFree(etah_y);
+  // cudaFree(etah_z);
+  // cudaFree(dev_dti_array);
+  // #ifdef COOLING_GPU
+  // cudaFree(dev_dt_array);
+  // #endif
   
   // #ifdef SINGLE_ALLOC_GPU
   // chprintf( " VL_3D: Memory freed successfully \n");
