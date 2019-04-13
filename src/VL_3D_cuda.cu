@@ -112,7 +112,7 @@ Real VL_Algorithm_3D_CUDA(Real *host_conserved0, Real *host_conserved1, int nx, 
   //number of threads per 1D block   
   dim3 dim1dBlock(TPB, 1, 1);
   
-  memory_allocated = false;
+  // memory_allocated = false;
   
   // if ( !memory_allocated ){
 
