@@ -856,6 +856,15 @@ __host__ __device__ Real Get_Pressure_From_DE( Real E, Real U_total, Real U_adve
   return P;
 }
 
+__host__ __device__ int Select_Internal_Energy_From_DE( Real E, Real U_total, Real U_advected ){
+
+  Real eta = DE_LIMIT;
+  
+  if( U_total / E > eta ) return 0;
+  else return 1;  
+}
+
+
 #endif //DE
 
 #endif //CUDA

@@ -9,6 +9,8 @@
 #include"global_cuda.h"
 #include"plmp_cuda.h"
 
+#include "hydro_cuda.h"
+
 
 /*! \fn __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx, int ny, int nz, int n_ghost, Real dx, Real dt, Real gamma, int dir, int n_fields)
  *  \brief When passed a stencil of conserved variables, returns the left and right 
@@ -42,6 +44,8 @@ __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bou
 
   #ifdef DE
   Real ge_i, ge_imo, ge_ipo, ge_L, ge_R, dge_L, dge_R;
+  Real E, E_kin, GE;
+  int use_advected;
   #endif
   #ifdef SCALAR
   Real scalar_i[NSCALARS], scalar_imo[NSCALARS], scalar_ipo[NSCALARS];
@@ -94,7 +98,16 @@ __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bou
     vx_i =  dev_conserved[o1*n_cells + id] / d_i;
     vy_i =  dev_conserved[o2*n_cells + id] / d_i;
     vz_i =  dev_conserved[o3*n_cells + id] / d_i;
+    #ifdef DE
+    //PRESSURE_DE
+    E = dev_conserved[4*n_cells + id];
+    GE = dev_conserved[(n_fields-1)*n_cells + id];
+    E_kin = 0.5 * d_i * ( vx_i*vx_i + vy_i*vy_i + vz_i*vz_i );
+    p_i = Get_Pressure_From_DE( E, E - E_kin, GE, gamma );
+    use_advected = Select_Internal_Energy_From_DE( E, E-E_kin, GE ); 
+    #else
     p_i  = (dev_conserved[4*n_cells + id] - 0.5*d_i*(vx_i*vx_i + vy_i*vy_i + vz_i*vz_i)) * (gamma - 1.0);
+    #endif
     p_i  = fmax(p_i, (Real) TINY_NUMBER);
     #ifdef SCALAR
     for (int i=0; i<NSCALARS; i++) {
@@ -112,7 +125,16 @@ __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bou
     vx_imo =  dev_conserved[o1*n_cells + id] / d_imo;
     vy_imo =  dev_conserved[o2*n_cells + id] / d_imo;
     vz_imo =  dev_conserved[o3*n_cells + id] / d_imo;
+    #ifdef DE
+    //PRESSURE_DE
+    E = dev_conserved[4*n_cells + id];
+    GE = dev_conserved[(n_fields-1)*n_cells + id];
+    E_kin = 0.5 * d_imo * ( vx_imo*vx_imo + vy_imo*vy_imo + vz_imo*vz_imo );
+    p_imo = Get_Pressure_From_DE( E, E - E_kin, GE, gamma ); 
+    // if ( use_advected ) p_imo = GE * ( gamma - 1 ); 
+    #else
     p_imo  = (dev_conserved[4*n_cells + id] - 0.5*d_imo*(vx_imo*vx_imo + vy_imo*vy_imo + vz_imo*vz_imo)) * (gamma - 1.0);
+    #endif
     p_imo  = fmax(p_imo, (Real) TINY_NUMBER);
     #ifdef SCALAR
     for (int i=0; i<NSCALARS; i++) {
@@ -130,7 +152,16 @@ __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bou
     vx_ipo =  dev_conserved[o1*n_cells + id] / d_ipo;
     vy_ipo =  dev_conserved[o2*n_cells + id] / d_ipo;
     vz_ipo =  dev_conserved[o3*n_cells + id] / d_ipo;
+    #ifdef DE
+    //PRESSURE_DE
+    E = dev_conserved[4*n_cells + id];
+    GE = dev_conserved[(n_fields-1)*n_cells + id];
+    E_kin = 0.5 * d_ipo * ( vx_ipo*vx_ipo + vy_ipo*vy_ipo + vz_ipo*vz_ipo );
+    p_ipo = Get_Pressure_From_DE( E, E - E_kin, GE, gamma );
+    // if ( use_advected ) p_ipo = GE * ( gamma - 1 );  
+    #else
     p_ipo  = (dev_conserved[4*n_cells + id] - 0.5*d_ipo*(vx_ipo*vx_ipo + vy_ipo*vy_ipo + vz_ipo*vz_ipo)) * (gamma - 1.0);
+    #endif
     p_ipo  = fmax(p_ipo, (Real) TINY_NUMBER);
     #ifdef SCALAR
     for (int i=0; i<NSCALARS; i++) {
@@ -175,6 +206,9 @@ __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bou
     #ifdef DE
     dge_L = d_L*ge_L;
     dge_R = d_R*ge_R;
+    // Use constant reconstruction for gas energy
+    // dge_L = d_i*ge_i;
+    // dge_R = d_i*ge_i;
     #endif
     #ifdef SCALAR
     for (int i=0; i<NSCALARS; i++) {
