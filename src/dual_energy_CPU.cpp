@@ -188,7 +188,7 @@ void Grid3D::Apply_Temperature_Floor_CPU_function( int g_start, int g_end ){
         if ( U < U_floor ){
            C.GasEnergy[id] = d*U_floor;
           if ( Cosmo.current_a > Cool.scale_factor_UVB_on + 0.02){
-            std::cout << "######Cell hit the floor. current_a: " << Cosmo.current_a << std::endl;
+            // std::cout << "######Cell hit the floor. current_a: " << Cosmo.current_a << std::endl;
           } 
          }
         #endif
