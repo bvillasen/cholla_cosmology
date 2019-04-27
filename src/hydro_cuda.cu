@@ -333,11 +333,17 @@ __global__ void Update_Conserved_Variables_3D(Real *dev_conserved,  Real *Q_Lx, 
     
     #ifdef EXTRA_SCALAR
     //set extra scalar equal to the pressure term
-    dev_conserved[(5+7)*n_cells + id] = dtodx * (dev_F_x[(n_fields-1)*n_cells + imo] - dev_F_x[(n_fields-1)*n_cells + id])
-                                  +  dtody * (dev_F_y[(n_fields-1)*n_cells + jmo] - dev_F_y[(n_fields-1)*n_cells + id])
-                                  +  dtodz * (dev_F_z[(n_fields-1)*n_cells + kmo] - dev_F_z[(n_fields-1)*n_cells + id]);   
-    dev_conserved[(5+8)*n_cells + id] = 0.5*P*(dtodx*(vx_imo-vx_ipo) + dtody*(vy_jmo-vy_jpo) + dtodz*(vz_kmo-vz_kpo));   
-    // dev_conserved[(5+7)*n_cells + id] = 15.5;   
+    // dev_conserved[(5+7)*n_cells + id] = dtodx * (dev_F_x[(n_fields-1)*n_cells + imo] - dev_F_x[(n_fields-1)*n_cells + id])
+    //                               +  dtody * (dev_F_y[(n_fields-1)*n_cells + jmo] - dev_F_y[(n_fields-1)*n_cells + id])
+    //                               +  dtodz * (dev_F_z[(n_fields-1)*n_cells + kmo] - dev_F_z[(n_fields-1)*n_cells + id]);   
+    // dev_conserved[(5+8)*n_cells + id] = 0.5*P*(dtodx*(vx_imo-vx_ipo) + dtody*(vy_jmo-vy_jpo) + dtodz*(vz_kmo-vz_kpo));   
+    dev_conserved[(5+7)*n_cells + id] = dtodx * dev_F_x[(n_fields-1)*n_cells + id];
+    dev_conserved[(5+8)*n_cells + id] = dtodx * dev_F_x[(n_fields-1)*n_cells + imo];
+    dev_conserved[(5+9)*n_cells + id] = dtody * dev_F_y[(n_fields-1)*n_cells + id];
+    dev_conserved[(5+10)*n_cells + id] = dtody * dev_F_y[(n_fields-1)*n_cells + jmo];
+    dev_conserved[(5+11)*n_cells + id] = dtodz * dev_F_z[(n_fields-1)*n_cells + id];
+    dev_conserved[(5+12)*n_cells + id] = dtodz * dev_F_z[(n_fields-1)*n_cells + kmo];
+       
     #endif
     
     #ifdef DENSITY_FLOOR
@@ -851,6 +857,9 @@ __host__ __device__ Real Get_Pressure_From_DE( Real E, Real U_total, Real U_adve
   
   if( U_total / E > eta ) U = U_total;
   else U = U_advected;
+  
+  // Always use the value stored in total internal energy too compute the pressure
+  // U = U_total;
 
   P = U * (gamma - 1.0);
   return P;
