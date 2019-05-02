@@ -103,6 +103,7 @@ __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bou
     E = dev_conserved[4*n_cells + id];
     GE = dev_conserved[(n_fields-1)*n_cells + id];
     E_kin = 0.5 * d_i * ( vx_i*vx_i + vy_i*vy_i + vz_i*vz_i );
+    // p_i = GE * (gamma - 1.0);
     p_i = Get_Pressure_From_DE( E, E - E_kin, GE, gamma );
     use_advected = Select_Internal_Energy_From_DE( E, E-E_kin, GE ); 
     #else
@@ -130,6 +131,7 @@ __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bou
     E = dev_conserved[4*n_cells + id];
     GE = dev_conserved[(n_fields-1)*n_cells + id];
     E_kin = 0.5 * d_imo * ( vx_imo*vx_imo + vy_imo*vy_imo + vz_imo*vz_imo );
+    // p_imo = GE * (gamma - 1.0);
     p_imo = Get_Pressure_From_DE( E, E - E_kin, GE, gamma ); 
     // if ( use_advected ) p_imo = GE * ( gamma - 1 ); 
     #else
@@ -157,6 +159,7 @@ __global__ void PLMP_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bou
     E = dev_conserved[4*n_cells + id];
     GE = dev_conserved[(n_fields-1)*n_cells + id];
     E_kin = 0.5 * d_ipo * ( vx_ipo*vx_ipo + vy_ipo*vy_ipo + vz_ipo*vz_ipo );
+    // p_ipo = GE * (gamma - 1.0);
     p_ipo = Get_Pressure_From_DE( E, E - E_kin, GE, gamma );
     // if ( use_advected ) p_ipo = GE * ( gamma - 1 );  
     #else
