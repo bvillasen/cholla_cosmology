@@ -106,8 +106,8 @@ __global__ void Calculate_HLL_Fluxes_CUDA(Real *dev_bounds_L, Real *dev_bounds_R
     #ifdef DE //PRESSURE_DE
     E_kin = 0.5 * dl * ( vxl*vxl + vyl*vyl + vzl*vzl );
     //Use advected U to compute pressure
-    pl = dgel * (gamma - 1.0);
-    // pl = Get_Pressure_From_DE( El, El - E_kin, dgel, gamma ); 
+    // pl = dgel * (gamma - 1.0);
+    pl = Get_Pressure_From_DE( El, El - E_kin, dgel, gamma ); 
     #else
     pl  = (El - 0.5*dl*(vxl*vxl + vyl*vyl + vzl*vzl)) * (gamma - 1.0);
     #endif//DE
@@ -126,8 +126,8 @@ __global__ void Calculate_HLL_Fluxes_CUDA(Real *dev_bounds_L, Real *dev_bounds_R
     #ifdef DE //PRESSURE_DE
     E_kin = 0.5 * dr * ( vxr*vxr + vyr*vyr + vzr*vzr );
     //Use advected U to compute pressure
-    pr = dger * (gamma - 1.0);
-    // pr = Get_Pressure_From_DE( Er, Er - E_kin, dger, gamma ); 
+    // pr = dger * (gamma - 1.0);
+    pr = Get_Pressure_From_DE( Er, Er - E_kin, dger, gamma ); 
     #else
     pr  = (Er - 0.5*dr*(vxr*vxr + vyr*vyr + vzr*vzr)) * (gamma - 1.0);
     #endif//DE
