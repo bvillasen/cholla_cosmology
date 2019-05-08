@@ -217,13 +217,13 @@ void Grid3D::Do_Cooling_Step_Grackle(){
 
   Copy_Fields_To_Grackle();
 
-  // 
-  // Real dt_cool = Cosmo.dt_secs;
-  // chprintf( " dt_cool: %e s\n", dt_cool );
-  // if (solve_chemistry(&Cool.units, &Cool.fields, dt_cool / Cool.units.time_units ) == 0) {
-  //   chprintf( "GRACKLE: Error in solve_chemistry.\n");
-  //   return ;
-  // }
+  
+  Real dt_cool = Cosmo.dt_secs;
+  chprintf( " dt_cool: %e s\n", dt_cool );
+  if (solve_chemistry(&Cool.units, &Cool.fields, dt_cool / Cool.units.time_units ) == 0) {
+    chprintf( "GRACKLE: Error in solve_chemistry.\n");
+    return ;
+  }
 
 
 
@@ -234,7 +234,7 @@ void Grid3D::Do_Cooling_Step_Grackle(){
   }
   #endif
 
-  // Update_Internal_Energy();
+  Update_Internal_Energy();
 
 }
 
