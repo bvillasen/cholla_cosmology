@@ -144,7 +144,7 @@ void Grid3D::Sync_Energies_3D_CPU_function( int g_start, int g_end ){
 void Grid3D::Apply_Temperature_Floor_CPU_function( int g_start, int g_end ){
   Real temp_floor = H.temperature_floor;
   
-  if (Cosmo.current_a > Cool.scale_factor_UVB_on ) temp_floor =  1;
+  temp_floor =  1;
   Real U_floor = temp_floor / (gama - 1) / MP * KB * 1e-10;
 
   #ifdef COSMOLOGY
@@ -185,12 +185,7 @@ void Grid3D::Apply_Temperature_Floor_CPU_function( int g_start, int g_end ){
         #ifdef DE
         GE = C.GasEnergy[id];
         U = GE / d;
-        if ( U < U_floor ){
-           C.GasEnergy[id] = d*U_floor;
-          if ( Cosmo.current_a > Cool.scale_factor_UVB_on + 0.02){
-            // std::cout << "######Cell hit the floor. current_a: " << Cosmo.current_a << std::endl;
-          } 
-         }
+        if ( U < U_floor )  C.GasEnergy[id] = d*U_floor;
         #endif
       }
     }
