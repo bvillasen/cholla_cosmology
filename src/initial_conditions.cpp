@@ -68,6 +68,8 @@ void Grid3D::Set_Initial_Conditions(parameters P) {
     // Initialize a uniforn hydro grid when only integrating particles
     Uniform_Grid();
     #endif
+  } else if (strcmp(P.init, "Uniform")==0) {
+    Uniform_Grid();  
   } else if (strcmp(P.init, "Zeldovich_Pancake")==0) {
     Zeldovich_Pancake(P);    
   } else {
@@ -1111,7 +1113,7 @@ void Grid3D::Uniform_Grid()
       for (i=H.n_ghost; i<H.nx-H.n_ghost; i++) {
         id = i + j*H.nx + k*H.nx*H.ny;
 
-        C.density[id] = 0;
+        C.density[id] = 1;
         C.momentum_x[id] = 0;
         C.momentum_y[id] = 0;
         C.momentum_z[id] = 0;
